@@ -3,156 +3,300 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Category Dice Roller</title>
+  <title>Decision Die</title>
+
+  <!-- If you OWN the Geogrotesque files, replace this link with your self-hosted font -->
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;600;700&display=swap" rel="stylesheet" />
+
   <style>
-    body { font-family: Arial, sans-serif; margin: 20px; }
-    .container { display: flex; gap: 20px; }
-    .category { border: 1px solid #ccc; padding: 16px; border-radius: 12px; width: 30%; }
-    .category h2 { margin-top: 0; }
-    .item-row { display: flex; gap: 6px; margin-bottom: 6px; }
-    .item-row input { flex: 1; padding: 6px; }
-    button { padding: 8px; cursor: pointer; margin-top: 6px; }
-    .output { font-size: 1.5rem; margin-top: 20px; font-weight: bold; }
-    .profile-controls { margin-top: 20px; }
-  </style>
-</head>
-<body>
-  <h1>Category Dice Roller</h1>
-
-  <div class="container">
-    <div class="category" id="cat1">
-      <h2>First Priority</h2>
-      <div class="items"></div>
-      <button onclick="addItem('cat1')">Add Item</button>
-    </div>
-
-    <div class="category" id="cat2">
-      <h2>Second Priority</h2>
-      <div class="items"></div>
-      <button onclick="addItem('cat2')">Add Item</button>
-    </div>
-
-    <div class="category" id="cat3">
-      <h2>Third Priority</h2>
-      <div class="items"></div>
-      <button onclick="addItem('cat3')">Add Item</button>
-    </div>
-  </div>
-
-  <button onclick="rollDice()">Roll</button>
-
-  <div class="profile-controls">
-    <h3>Save Profile</h3>
-    <input id="profileName" placeholder="Profile name" />
-    <button onclick="saveProfile()">Save Profile</button>
-
-    <h3>Load / Delete Profile</h3>
-    <select id="profileSelect"></select>
-    <button onclick="loadProfile()">Load</button>
-    <button onclick="deleteProfile()">Delete</button>
-  </div>
-
-  <div class="output" id="result"></div>
-
-  <script>
-    function addItem(catId, value = "") {
-      const container = document.querySelector(`#${catId} .items`);
-      const row = document.createElement('div');
-      row.className = 'item-row';
-
-      row.innerHTML = `
-        <input type="text" value="${value}" />
-        <button onclick="this.parentElement.remove()">✕</button>
-      `;
-
-      container.appendChild(row);
+    /* BASIC STYLES */
+    body {
+      font-family: 'Montserrat', sans-serif;
+      margin: 0;
+      padding: 0;
+      background: #fafafa;
+      color: #111;
+      line-height: 1.5;
     }
 
-    function getItems(catId) {
-      return [...document.querySelectorAll(`#${catId} .item-row input`)]
-        .map(i => i.value.trim())
-        .filter(v => v);
+    header {
+      text-align: center;
+      padding: 32px 20px;
+      background: #ffffff;
+      border-bottom: 1px solid #ddd;
     }
 
-    function setItems(catId, items) {
-      const container = document.querySelector(`#${catId} .items`);
-      container.innerHTML = "";
-      items.forEach(i => addItem(catId, i));
+    h1 {
+      font-size: 2.6rem;
+      font-weight: 700;
+      margin: 0;
     }
 
-    function rollDice() {
-      const c1 = getItems('cat1');
-      const c2 = getItems('cat2');
-      const c3 = getItems('cat3');
+    h2 {
+      font-size: 1.4rem;
+      margin: 0 0 10px 0;
+      font-weight: 600;
+    }
 
-      if (!c1.length || !c2.length || !c3.length) {
-        alert('Each category must have at least one item.');
-        return;
+    h3 {
+      font-size: 1.2rem;
+      margin-top: 30px;
+      font-weight: 600;
+    }
+
+    .subheading {
+      max-width: 700px;
+      margin: 10px auto 0 auto;
+      font-size: 1rem;
+      font-weight: 400;
+      opacity: 0.8;
+    }
+
+    /* LAYOUT */
+    .container {
+      display: flex;
+      gap: 20px;
+      padding: 20px;
+      max-width: 1200px;
+      margin: auto;
+    }
+
+    /* MOBILE FRIENDLY STACKING */
+    @media (max-width: 900px) {
+      .container {
+        flex-direction: column;
+        padding: 10px;
       }
 
-      const r1 = c1[Math.floor(Math.random() * c1.length)];
-      const r2 = c2[Math.floor(Math.random() * c2.length)];
-      const r3 = c3[Math.floor(Math.random() * c3.length)];
+      .category {
+        width: 100% !important;
+      }
 
-      document.getElementById('result').textContent = `→ ${r1} | ${r2} | ${r3}`;
+      h1 {
+        font-size: 2.2rem;
+      }
     }
 
-    function saveProfile() {
-      const name = document.getElementById('profileName').value.trim();
-      if (!name) { alert('Enter a profile name.'); return; }
-
-      const profiles = JSON.parse(localStorage.getItem('profiles') || '{}');
-      profiles[name] = {
-        cat1: getItems('cat1'),
-        cat2: getItems('cat2'),
-        cat3: getItems('cat3')
-      };
-
-      localStorage.setItem('profiles', JSON.stringify(profiles));
-      loadProfileList();
-      alert('Saved!');
+    .category {
+      border: 1px solid #ccc;
+      padding: 16px;
+      border-radius: 12px;
+      width: 32%;
+      background: white;
     }
 
-    function loadProfileList() {
-      const select = document.getElementById('profileSelect');
-      select.innerHTML = '';
-      const profiles = JSON.parse(localStorage.getItem('profiles') || '{}');
-
-      Object.keys(profiles).forEach(name => {
-        const opt = document.createElement('option');
-        opt.value = name;
-        opt.textContent = name;
-        select.appendChild(opt);
-      });
+    .item-row {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 8px;
     }
 
-    function loadProfile() {
-      const name = document.getElementById('profileSelect').value;
-      if (!name) return;
-
-      const profiles = JSON.parse(localStorage.getItem('profiles') || '{}');
-      const p = profiles[name];
-
-      setItems('cat1', p.cat1);
-      setItems('cat2', p.cat2);
-      setItems('cat3', p.cat3);
+    input[type="text"] {
+      flex: 1;
+      padding: 8px;
+      font-size: 1rem;
+      border: 1px solid #bbb;
+      border-radius: 6px;
     }
 
-    function deleteProfile() {
-      const name = document.getElementById('profileSelect').value;
-      if (!name) return;
-
-      const profiles = JSON.parse(localStorage.getItem('profiles') || '{}');
-      delete profiles[name];
-      localStorage.setItem('profiles', JSON.stringify(profiles));
-      loadProfileList();
-      alert('Deleted!');
+    button {
+      padding: 8px 14px;
+      cursor: pointer;
+      border-radius: 6px;
+      border: none;
+      background: #222;
+      color: white;
+      font-size: 0.9rem;
+      font-weight: 600;
     }
 
-    addItem('cat1');
-    addItem('cat2');
-    addItem('cat3');
+    button:hover {
+      background: #444;
+    }
+
+    .delete-btn {
+      background: #b30000;
+    }
+
+    .delete-btn:hover {
+      background: #d00000;
+    }
+
+    .output {
+      font-size: 1.8rem;
+      margin-top: 30px;
+      text-align: center;
+      font-weight: 700;
+      padding: 20px;
+    }
+
+    .profile-controls {
+      max-width: 700px;
+      margin: 20px auto;
+      padding: 20px;
+    }
+
+    select, input {
+      padding: 8px;
+      font-size: 1rem;
+      border: 1px solid #bbb;
+      border-radius: 6px;
+      margin-top: 5px;
+      margin-bottom: 10px;
+      width: 100%;
+    }
+  </style>
+</head>
+
+<body>
+
+<header>
+  <h1>Decision Die</h1>
+  <p class="subheading">
+    Fill in your categories, roll the die, and get a randomized decision.  
+    Profiles are saved locally on your device — anyone using this site on their device can create their own.
+  </p>
+</header>
+
+<div class="container">
+
+  <div class="category" id="cat1">
+    <h2>First Priority</h2>
+    <div class="items"></div>
+    <button onclick="addItem('cat1')">Add Item</button>
+  </div>
+
+  <div class="category" id="cat2">
+    <h2>Second Priority</h2>
+    <div class="items"></div>
+    <button onclick="addItem('cat2')">Add Item</button>
+  </div>
+
+  <div class="category" id="cat3">
+    <h2>Third Priority</h2>
+    <div class="items"></div>
+    <button onclick="addItem('cat3')">Add Item</button>
+  </div>
+
+</div>
+
+<div style="text-align:center; margin-bottom: 20px;">
+  <button onclick="rollDice()" style="font-size:1.1rem; padding:12px 20px;">Roll Decision</button>
+</div>
+
+<div class="profile-controls">
+  <h3>Save Profile</h3>
+  <input id="profileName" placeholder="Profile name" />
+  <button onclick="saveProfile()">Save Profile</button>
+
+  <h3>Load or Delete Profile</h3>
+  <select id="profileSelect"></select>
+  <button onclick="loadProfile()">Load</button>
+  <button onclick="deleteProfile()" class="delete-btn">Delete</button>
+</div>
+
+<div class="output" id="result"></div>
+
+<script>
+  function addItem(catId, value = "") {
+    const container = document.querySelector(`#${catId} .items`);
+    const row = document.createElement('div');
+    row.className = 'item-row';
+
+    row.innerHTML = `
+      <input type="text" value="${value}" aria-label="Category item" />
+      <button class="delete-btn" aria-label="Remove item" onclick="this.parentElement.remove()">✕</button>
+    `;
+
+    container.appendChild(row);
+  }
+
+  function getItems(catId) {
+    return [...document.querySelectorAll(`#${catId} .item-row input`)]
+      .map(i => i.value.trim())
+      .filter(v => v);
+  }
+
+  function setItems(catId, items) {
+    const container = document.querySelector(`#${catId} .items`);
+    container.innerHTML = "";
+    items.forEach(i => addItem(catId, i));
+  }
+
+  function rollDice() {
+    const c1 = getItems('cat1');
+    const c2 = getItems('cat2');
+    const c3 = getItems('cat3');
+
+    if (!c1.length || !c2.length || !c3.length) {
+      alert('Please add at least one item to each category.');
+      return;
+    }
+
+    const r1 = c1[Math.floor(Math.random() * c1.length)];
+    const r2 = c2[Math.floor(Math.random() * c2.length)];
+    const r3 = c3[Math.floor(Math.random() * c3.length)];
+
+    document.getElementById('result').textContent = `→ ${r1} | ${r2} | ${r3}`;
+  }
+
+  function saveProfile() {
+    const name = document.getElementById('profileName').value.trim();
+    if (!name) { alert('Enter a profile name.'); return; }
+
+    const profiles = JSON.parse(localStorage.getItem('profiles') || '{}');
+    profiles[name] = {
+      cat1: getItems('cat1'),
+      cat2: getItems('cat2'),
+      cat3: getItems('cat3')
+    };
+
+    localStorage.setItem('profiles', JSON.stringify(profiles));
     loadProfileList();
-  </script>
+    alert('Saved!');
+  }
+
+  function loadProfileList() {
+    const select = document.getElementById('profileSelect');
+    select.innerHTML = '';
+    const profiles = JSON.parse(localStorage.getItem('profiles') || '{}');
+
+    Object.keys(profiles).forEach(name => {
+      const opt = document.createElement('option');
+      opt.value = name;
+      opt.textContent = name;
+      select.appendChild(opt);
+    });
+  }
+
+  function loadProfile() {
+    const name = document.getElementById('profileSelect').value;
+    if (!name) return;
+
+    const profiles = JSON.parse(localStorage.getItem('profiles') || '{}');
+    const p = profiles[name];
+
+    setItems('cat1', p.cat1);
+    setItems('cat2', p.cat2);
+    setItems('cat3', p.cat3);
+  }
+
+  function deleteProfile() {
+    const name = document.getElementById('profileSelect').value;
+    if (!name) return;
+
+    const profiles = JSON.parse(localStorage.getItem('profiles') || '{}');
+    delete profiles[name];
+    localStorage.setItem('profiles', JSON.stringify(profiles));
+    loadProfileList();
+    alert('Deleted!');
+  }
+
+  addItem('cat1');
+  addItem('cat2');
+  addItem('cat3');
+  loadProfileList();
+</script>
+
 </body>
 </html>
