@@ -6,47 +6,87 @@
   <title>Category Dice Roller</title>
   <style>
     body { font-family: Arial, sans-serif; margin: 20px; }
-    .card { border: 1px solid #ccc; padding: 16px; border-radius: 12px; max-width: 500px; }
-    input, button, textarea { width: 100%; padding: 8px; margin: 6px 0; }
-    button { cursor: pointer; }
+    .container { display: flex; gap: 20px; }
+    .category { border: 1px solid #ccc; padding: 16px; border-radius: 12px; width: 30%; }
+    .category h2 { margin-top: 0; }
+    .item-row { display: flex; gap: 6px; margin-bottom: 6px; }
+    .item-row input { flex: 1; padding: 6px; }
+    button { padding: 8px; cursor: pointer; margin-top: 6px; }
     .output { font-size: 1.5rem; margin-top: 20px; font-weight: bold; }
+    .profile-controls { margin-top: 20px; }
   </style>
 </head>
 <body>
   <h1>Category Dice Roller</h1>
 
-  <div class="card">
-    <h2>Your Categories</h2>
-    <p>Enter three comma-separated lists (one per line). Each list is a category.</p>
-    <textarea id="cat1" rows="2" placeholder="Category 1: item1, item2, item3"></textarea>
-    <textarea id="cat2" rows="2" placeholder="Category 2: item1, item2, item3"></textarea>
-    <textarea id="cat3" rows="2" placeholder="Category 3: item1, item2, item3"></textarea>
+  <div class="container">
+    <div class="category" id="cat1">
+      <h2>First Priority</h2>
+      <div class="items"></div>
+      <button onclick="addItem('cat1')">Add Item</button>
+    </div>
 
-    <button onclick="rollDice()">Roll</button>
+    <div class="category" id="cat2">
+      <h2>Second Priority</h2>
+      <div class="items"></div>
+      <button onclick="addItem('cat2')">Add Item</button>
+    </div>
 
+    <div class="category" id="cat3">
+      <h2>Third Priority</h2>
+      <div class="items"></div>
+      <button onclick="addItem('cat3')">Add Item</button>
+    </div>
+  </div>
+
+  <button onclick="rollDice()">Roll</button>
+
+  <div class="profile-controls">
     <h3>Save Profile</h3>
     <input id="profileName" placeholder="Profile name" />
     <button onclick="saveProfile()">Save Profile</button>
 
-    <h3>Load Profile</h3>
+    <h3>Load / Delete Profile</h3>
     <select id="profileSelect"></select>
     <button onclick="loadProfile()">Load</button>
-
-    <div class="output" id="result"></div>
+    <button onclick="deleteProfile()">Delete</button>
   </div>
 
+  <div class="output" id="result"></div>
+
   <script>
-    function parseList(text) {
-      return text.split(',').map(x => x.trim()).filter(x => x);
+    function addItem(catId, value = "") {
+      const container = document.querySelector(`#${catId} .items`);
+      const row = document.createElement('div');
+      row.className = 'item-row';
+
+      row.innerHTML = `
+        <input type="text" value="${value}" />
+        <button onclick="this.parentElement.remove()">✕</button>
+      `;
+
+      container.appendChild(row);
+    }
+
+    function getItems(catId) {
+      return [...document.querySelectorAll(`#${catId} .item-row input`)]
+        .map(i => i.value.trim())
+        .filter(v => v);
+    }
+
+    function setItems(catId, items) {
+      const container = document.querySelector(`#${catId} .items`);
+      container.innerHTML = "";
+      items.forEach(i => addItem(catId, i));
     }
 
     function rollDice() {
-      const c1 = parseList(document.getElementById('cat1').value);
-      const c2 = parseList(document.getElementById('cat2').value);
-      const c3 = parseList(document.getElementById('cat3').value);
+      const c1 = getItems('cat1');
+      const c2 = getItems('cat2');
+      const c3 = getItems('cat3');
 
       if (!c1.length || !c2.length || !c3.length) {
-        alert('All categories must have at least one item.');
+        alert('Each category must have at least one item.');
         return;
       }
 
@@ -63,13 +103,14 @@
 
       const profiles = JSON.parse(localStorage.getItem('profiles') || '{}');
       profiles[name] = {
-        cat1: document.getElementById('cat1').value,
-        cat2: document.getElementById('cat2').value,
-        cat3: document.getElementById('cat3').value
+        cat1: getItems('cat1'),
+        cat2: getItems('cat2'),
+        cat3: getItems('cat3')
       };
+
       localStorage.setItem('profiles', JSON.stringify(profiles));
       loadProfileList();
-      alert('Profile saved!');
+      alert('Saved!');
     }
 
     function loadProfileList() {
@@ -91,11 +132,26 @@
 
       const profiles = JSON.parse(localStorage.getItem('profiles') || '{}');
       const p = profiles[name];
-      document.getElementById('cat1').value = p.cat1;
-      document.getElementById('cat2').value = p.cat2;
-      document.getElementById('cat3').value = p.cat3;
+
+      setItems('cat1', p.cat1);
+      setItems('cat2', p.cat2);
+      setItems('cat3', p.cat3);
     }
 
+    function deleteProfile() {
+      const name = document.getElementById('profileSelect').value;
+      if (!name) return;
+
+      const profiles = JSON.parse(localStorage.getItem('profiles') || '{}');
+      delete profiles[name];
+      localStorage.setItem('profiles', JSON.stringify(profiles));
+      loadProfileList();
+      alert('Deleted!');
+    }
+
+    addItem('cat1');
+    addItem('cat2');
+    addItem('cat3');
     loadProfileList();
   </script>
 </body>
