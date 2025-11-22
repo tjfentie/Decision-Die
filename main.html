@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Category Dice Roller</title>
+  <style>
+    body { font-family: Arial, sans-serif; margin: 20px; }
+    .card { border: 1px solid #ccc; padding: 16px; border-radius: 12px; max-width: 500px; }
+    input, button, textarea { width: 100%; padding: 8px; margin: 6px 0; }
+    button { cursor: pointer; }
+    .output { font-size: 1.5rem; margin-top: 20px; font-weight: bold; }
+  </style>
+</head>
+<body>
+  <h1>Category Dice Roller</h1>
+
+  <div class="card">
+    <h2>Your Categories</h2>
+    <p>Enter three comma-separated lists (one per line). Each list is a category.</p>
+    <textarea id="cat1" rows="2" placeholder="Category 1: item1, item2, item3"></textarea>
+    <textarea id="cat2" rows="2" placeholder="Category 2: item1, item2, item3"></textarea>
+    <textarea id="cat3" rows="2" placeholder="Category 3: item1, item2, item3"></textarea>
+
+    <button onclick="rollDice()">Roll</button>
+
+    <h3>Save Profile</h3>
+    <input id="profileName" placeholder="Profile name" />
+    <button onclick="saveProfile()">Save Profile</button>
+
+    <h3>Load Profile</h3>
+    <select id="profileSelect"></select>
+    <button onclick="loadProfile()">Load</button>
+
+    <div class="output" id="result"></div>
+  </div>
+
+  <script>
+    function parseList(text) {
+      return text.split(',').map(x => x.trim()).filter(x => x);
+    }
+
+    function rollDice() {
+      const c1 = parseList(document.getElementById('cat1').value);
+      const c2 = parseList(document.getElementById('cat2').value);
+      const c3 = parseList(document.getElementById('cat3').value);
+
+      if (!c1.length || !c2.length || !c3.length) {
+        alert('All categories must have at least one item.');
+        return;
+      }
+
+      const r1 = c1[Math.floor(Math.random() * c1.length)];
+      const r2 = c2[Math.floor(Math.random() * c2.length)];
+      const r3 = c3[Math.floor(Math.random() * c3.length)];
+
+      document.getElementById('result').textContent = `→ ${r1} | ${r2} | ${r3}`;
+    }
+
+    function saveProfile() {
+      const name = document.getElementById('profileName').value.trim();
+      if (!name) { alert('Enter a profile name.'); return; }
+
+      const profiles = JSON.parse(localStorage.getItem('profiles') || '{}');
+      profiles[name] = {
+        cat1: document.getElementById('cat1').value,
+        cat2: document.getElementById('cat2').value,
+        cat3: document.getElementById('cat3').value
+      };
+      localStorage.setItem('profiles', JSON.stringify(profiles));
+      loadProfileList();
+      alert('Profile saved!');
+    }
+
+    function loadProfileList() {
+      const select = document.getElementById('profileSelect');
+      select.innerHTML = '';
+      const profiles = JSON.parse(localStorage.getItem('profiles') || '{}');
+
+      Object.keys(profiles).forEach(name => {
+        const opt = document.createElement('option');
+        opt.value = name;
+        opt.textContent = name;
+        select.appendChild(opt);
+      });
+    }
+
+    function loadProfile() {
+      const name = document.getElementById('profileSelect').value;
+      if (!name) return;
+
+      const profiles = JSON.parse(localStorage.getItem('profiles') || '{}');
+      const p = profiles[name];
+      document.getElementById('cat1').value = p.cat1;
+      document.getElementById('cat2').value = p.cat2;
+      document.getElementById('cat3').value = p.cat3;
+    }
+
+    loadProfileList();
+  </script>
+</body>
+</html>
